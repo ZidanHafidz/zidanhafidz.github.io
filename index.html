@@ -23,11 +23,56 @@
     </div>
   </div>
 
-  <script src="jquery.js"></script>
-  <script src="turn.js"></script>
-  <script>
-    $(".flipbook").turn();
-  </script>
+<script src="jquery.js"></script>
+<script src="turn.js"></script>
+<script>
+  function initFlipbook() {
+    const $book = $('.flipbook');
+    const isPhone = window.matchMedia('(max-width: 768px)').matches;
+
+    // Rasio halaman (harus match dengan CSS: 1000:700)
+    const RATIO = 1000 / 700;
+
+    // Ambil viewport yang efektif
+    const vw = Math.min(window.innerWidth, document.documentElement.clientWidth);
+    const vh = Math.min(window.innerHeight, document.documentElement.clientHeight);
+
+    // Lebar mengikuti batas terketat (lebar layar vs tinggi layar * rasio)
+    const width  = Math.floor(Math.min(vw * 0.96, vh * 0.96 * RATIO));
+    const height = Math.floor(width / RATIO);
+
+    // Jika sudah pernah dibuat, cukup ubah ukuran & mode display
+    if ($book.data('__inited')) {
+      $book.turn('size', width, height);
+      $book.turn('display', isPhone ? 'single' : 'double');
+      $book.turn('center');
+      return;
+    }
+
+    // Set ukuran awal elemen lalu inisialisasi turn.js
+    $book.css({ width: width + 'px', height: height + 'px' });
+
+    $book.turn({
+      width:  width,
+      height: height,
+      display: isPhone ? 'single' : 'double',
+      autoCenter: true,
+      gradients: true,
+      acceleration: true
+    });
+
+    $book.data('__inited', true);
+  }
+
+  // Inisialisasi & responsif saat orientation/resize
+  window.addEventListener('load', initFlipbook);
+  window.addEventListener('resize', () => {
+    clearTimeout(window.__bookResizeT);
+    window.__bookResizeT = setTimeout(initFlipbook, 150);
+  });
+</script>
+
 </body>
+
 
 </html>
