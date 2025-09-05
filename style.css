@@ -13,12 +13,12 @@ body {
     height: 100vh;
     width: 100vw;
 	overflow: hidden;
-	background: rgba(255, 255, 255, 0.067);
+	background: rgb(255, 255, 255);
 }
 
 .flipbook {
-    width: 2000px;
-    height: 1400px;
+    width: 1000px;
+    height: 700px;
 }
 
 .flipbook .hard {
@@ -55,4 +55,5 @@ body {
 	font-size: 14px;
     margin-bottom: 10px;
 }
+
 
