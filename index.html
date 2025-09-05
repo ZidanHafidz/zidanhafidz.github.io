@@ -72,7 +72,178 @@
   });
 </script>
 
+  <!-- Floating nav controls -->
+<div class="nav-fab prev" id="navPrevFab" aria-label="Halaman sebelumnya" title="Sebelumnya">&#x2039;</div>
+<div class="nav-fab next" id="navNextFab" aria-label="Halaman berikutnya" title="Berikutnya">&#x203A;</div>
+<div class="swipe-hint" id="swipeHint">Geser ke kiri/kanan untuk pindah halaman</div>
+
+  <!-- Swipe controls for mobile / touch devices -->
+<script>
+(function() {
+  function hasTurn($el){ return $el && typeof $el.turn === 'function'; }
+
+  function attachSwipe() {
+    var bookEl = document.querySelector('.flipbook');
+    if (!bookEl) return;
+
+    bookEl.style.touchAction = 'pan-y'; // allow vertical scroll
+    var startX = 0, startY = 0, swiping = false, moved = false;
+
+    var SWIPE_THRESHOLD = 50; // px horizontal
+    var VERTICAL_TOLERANCE = 80; // px vertical
+
+    function onDown(e) {
+      if (e.isPrimary === false) return;
+      startX = e.clientX; startY = e.clientY;
+      swiping = true; moved = false;
+    }
+    function onMove(e) { if (swiping) moved = true; }
+    function onUp(e) {
+      if (!swiping) return;
+      var dx = e.clientX - startX;
+      var dy = Math.abs(e.clientY - startY);
+      swiping = false;
+      if (!moved) return;
+      if (Math.abs(dx) >= SWIPE_THRESHOLD && dy <= VERTICAL_TOLERANCE) {
+        try {
+          var $book = window.jQuery ? jQuery('.flipbook') : null;
+          if (!$book || !hasTurn($book)) return;
+          if ($book.turn('animating')) return;
+          if (dx < 0) { $book.turn('next'); } else { $book.turn('previous'); }
+        } catch (err) {}
+      }
+    }
+    function onCancel(){ swiping = false; }
+
+    // Pointer Events
+    bookEl.addEventListener('pointerdown', onDown, {passive: true});
+    bookEl.addEventListener('pointermove', onMove, {passive: true});
+    bookEl.addEventListener('pointerup', onUp, {passive: true});
+    bookEl.addEventListener('pointercancel', onCancel, {passive: true});
+
+    // Fallback Touch Events
+    if (!('PointerEvent' in window)) {
+      bookEl.addEventListener('touchstart', function(te){
+        var t = te.changedTouches[0];
+        startX = t.clientX; startY = t.clientY;
+        swiping = true; moved = false;
+      }, {passive: true});
+      bookEl.addEventListener('touchmove', function(){ moved = true; }, {passive: true});
+      bookEl.addEventListener('touchend', function(te){
+        var t = te.changedTouches[0];
+        var dx = t.clientX - startX;
+        var dy = Math.abs(t.clientY - startY);
+        swiping = false;
+        if (!moved) return;
+        if (Math.abs(dx) >= SWIPE_THRESHOLD && dy <= VERTICAL_TOLERANCE) {
+          try {
+            var $book = window.jQuery ? jQuery('.flipbook') : null;
+            if (!$book || !hasTurn($book)) return;
+            if ($book.turn('animating')) return;
+            if (dx < 0) $book.turn('next'); else $book.turn('previous');
+          } catch (e) {}
+        }
+      }, {passive: true});
+      bookEl.addEventListener('touchcancel', onCancel, {passive: true});
+    }
+  }
+
+  if (document.readyState === 'complete' || document.readyState === 'interactive') {
+    setTimeout(attachSwipe, 0);
+  } else {
+    document.addEventListener('DOMContentLoaded', attachSwipe);
+  }
+
+  // Reattach on resize/orientation
+  window.addEventListener('resize', function(){
+    clearTimeout(window.__flipSwipeT);
+    window.__flipSwipeT = setTimeout(attachSwipe, 200);
+  });
+})();
+</script>
+
+  <!-- Floating nav controls logic -->
+<script>
+(function(){
+  function ready(fn){ if (document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
+  ready(function(){
+    var $ = window.jQuery;
+    var $book = $ ? $('.flipbook') : null;
+    var prevBtn = document.getElementById('navPrevFab');
+    var nextBtn = document.getElementById('navNextFab');
+    var hint    = document.getElementById('swipeHint');
+    if (!$ || !$book.length || !prevBtn || !nextBtn) return;
+
+    function showFabs(){
+      prevBtn.classList.remove('hidden');
+      nextBtn.classList.remove('hidden');
+      clearTimeout(window.__fabHideT);
+      window.__fabHideT = setTimeout(hideFabs, 2000);
+    }
+    function hideFabs(){
+      prevBtn.classList.add('hidden');
+      nextBtn.classList.add('hidden');
+    }
+    function updateDisabled(){
+      try{
+        var page = $book.turn('page');
+        var pages = $book.turn('pages');
+        if (page <= 1) { prevBtn.setAttribute('disabled',''); } else { prevBtn.removeAttribute('disabled'); }
+        if (page >= pages) { nextBtn.setAttribute('disabled',''); } else { nextBtn.removeAttribute('disabled'); }
+      }catch(e){}
+    }
+    function dismissHint(){
+      if (!hint) return;
+      hint.classList.remove('show');
+      clearTimeout(window.__hintT);
+      window.__hintT = null;
+    }
+
+    prevBtn.addEventListener('click', function(){
+      if ($book.turn('animating')) return;
+      $book.turn('previous');
+      dismissHint();
+    });
+    nextBtn.addEventListener('click', function(){
+      if ($book.turn('animating')) return;
+      $book.turn('next');
+      dismissHint();
+    });
+
+    // Tampilkan hint 3 detik saat pertama kali di mobile
+    var isPhone = window.matchMedia('(max-width: 768px)').matches;
+    if (hint && isPhone){
+      requestAnimationFrame(function(){
+        hint.classList.add('show');
+        window.__hintT = setTimeout(dismissHint, 3000);
+      });
+    }
+
+    // Interaksi menampilkan kembali tombol (lalu auto-hide)
+    ['pointermove','pointerdown','touchstart','mousemove','keydown'].forEach(function(evt){
+      window.addEventListener(evt, showFabs, {passive:true});
+    });
+
+    // Update saat halaman ganti
+    $book.on('turned', function(){ updateDisabled(); });
+    $book.on('turning', function(){ showFabs(); });
+
+    // State awal
+    updateDisabled();
+    setTimeout(hideFabs, 2500);
+
+    // Responsif
+    window.addEventListener('resize', function(){
+      clearTimeout(window.__fabRzT);
+      window.__fabRzT = setTimeout(function(){ updateDisabled(); }, 200);
+    });
+  });
+})();
+</script>
+
+
 </body>
 
 
 </html>
+
