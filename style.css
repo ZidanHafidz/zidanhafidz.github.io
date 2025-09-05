@@ -29,10 +29,11 @@ body {
 
 /* Halaman bawaan turn.js */
 .flipbook .hard {
-  background: #c0392b !important;
-  color: #fff;
+  background: #fff !important;
+  color: inherit;
   font-weight: bold;
-  border: none;
+  border: 1px solid rgba(0,0,0,.25);
+  box-shadow: 0 2px 12px rgba(0,0,0,.08) inset;
 }
 .flipbook .hard small {
   font-style: italic;
