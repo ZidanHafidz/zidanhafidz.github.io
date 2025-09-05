@@ -28,7 +28,6 @@
 <script>
   function initFlipbook() {
     const $book = $('.flipbook');
-    const isPhone = window.matchMedia('(max-width: 768px)').matches;
 
     // Rasio halaman (harus match dengan CSS: 1000:700)
     const RATIO = 1000 / 700;
@@ -44,7 +43,7 @@
     // Jika sudah pernah dibuat, cukup ubah ukuran & mode display
     if ($book.data('__inited')) {
       $book.turn('size', width, height);
-      $book.turn('display', isPhone ? 'single' : 'double');
+      $book.turn('display', 'double');    // <-- SELALU double
       $book.turn('center');
       return;
     }
@@ -55,7 +54,7 @@
     $book.turn({
       width:  width,
       height: height,
-      display: isPhone ? 'single' : 'double',
+      display: 'double',                  // <-- SELALU double
       autoCenter: true,
       gradients: true,
       acceleration: true
@@ -246,4 +245,5 @@
 
 
 </html>
+
 
