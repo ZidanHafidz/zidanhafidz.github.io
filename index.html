@@ -1,82 +1,84 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <link rel="stylesheet" href="style.css" />
+	<meta charset="utf-8">
+	<title>Turn.js: The page flip plugin for HTML5</title>
+
+	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+	<link rel="stylesheet" type="text/css" href="style.css">
+
 </head>
-
 <body>
-  <div class="flipbook">
-    <div>
-      <img src="images/1.png" alt="" />
-    </div>
-    <div>
-      <img src="images/2.png" alt="" />
-    </div>
-    <div>
-      <img src="images/3.png" alt="" />
-    </div>
-    <div>
-      <img src="images/4.png" alt="" />
-    </div>
-  </div>
 
-<script src="jquery.js"></script>
-<script src="turn.js"></script>
+<div class="flipbook-viewport">
+	<div class="container">
+		<div class="flipbook">
+			<div class="hard">
+				<img src="img/1.jpg" alt="Cover 1">
+			</div>
+			<div class="page">
+				<img src="img/2.jpg" alt="Page 2">
+			</div>
+			<div class="page">
+				<img src="img/3.jpg" alt="Page 3">
+			</div>
+			<div class="hard">
+				<img src="img/4.jpg" alt="Cover 4">
+			</div>
+		</div>
+	</div>
+</div>
+
+<script type="text/javascript" src="jquery.js"></script>
+<script type="text/javascript" src="turn.js"></script>
+
 <script>
-  function initFlipbook() {
-    const $book = $('.flipbook');
+// ==== Inisialisasi flipbook: responsif + force double-page (mobile & desktop) ====
+function initFlipbook() {
+  const $book = $('.flipbook');
 
-    // Rasio halaman (harus match dengan CSS: 1000:700)
-    const RATIO = 1000 / 700;
+  // Rasio halaman (harus match dengan CSS: 1000:700)
+  const RATIO = 1000 / 700;
 
-    // Ambil viewport yang efektif
-    const vw = Math.min(window.innerWidth, document.documentElement.clientWidth);
-    const vh = Math.min(window.innerHeight, document.documentElement.clientHeight);
+  // Ambil viewport yang efektif
+  const vw = Math.min(window.innerWidth, document.documentElement.clientWidth);
+  const vh = Math.min(window.innerHeight, document.documentElement.clientHeight);
 
-    // Lebar mengikuti batas terketat (lebar layar vs tinggi layar * rasio)
-    const width  = Math.floor(Math.min(vw * 0.96, vh * 0.96 * RATIO));
-    const height = Math.floor(width / RATIO);
+  // Lebar mengikuti batas terketat (lebar layar vs tinggi layar * rasio)
+  const width  = Math.floor(Math.min(vw * 0.96, vh * 0.96 * RATIO));
+  const height = Math.floor(width / RATIO);
 
-    // Jika sudah pernah dibuat, cukup ubah ukuran & mode display
-    if ($book.data('__inited')) {
-      $book.turn('size', width, height);
-      $book.turn('display', 'double');    // <-- SELALU double
-      $book.turn('center');
-      return;
-    }
-
-    // Set ukuran awal elemen lalu inisialisasi turn.js
-    $book.css({ width: width + 'px', height: height + 'px' });
-
-    $book.turn({
-      width:  width,
-      height: height,
-      display: 'double',                  // <-- SELALU double
-      autoCenter: true,
-      gradients: true,
-      acceleration: true
-    });
-
-    $book.data('__inited', true);
+  if ($book.data('__inited')) {
+    $book.turn('size', width, height);
+    $book.turn('display','double');  // <-- paksa double di semua perangkat
+    $book.turn('center');
+    return;
   }
 
-  // Inisialisasi & responsif saat orientation/resize
-  window.addEventListener('load', initFlipbook);
-  window.addEventListener('resize', () => {
-    clearTimeout(window.__bookResizeT);
-    window.__bookResizeT = setTimeout(initFlipbook, 150);
+  $book.css({ width: width + 'px', height: height + 'px' });
+
+  $book.turn({
+    width:  width,
+    height: height,
+    display: 'double',              // <-- paksa double di semua perangkat
+    autoCenter: true,
+    gradients: true,
+    acceleration: true
   });
+
+  $book.data('__inited', true);
+}
+
+// Inisialisasi & responsif saat orientation/resize
+window.addEventListener('load', initFlipbook);
+window.addEventListener('resize', () => {
+  clearTimeout(window.__bookResizeT);
+  window.__bookResizeT = setTimeout(initFlipbook, 150);
+});
 </script>
 
-  <!-- Floating nav controls -->
-<div class="nav-fab prev" id="navPrevFab" aria-label="Halaman sebelumnya" title="Sebelumnya">&#x2039;</div>
-<div class="nav-fab next" id="navNextFab" aria-label="Halaman berikutnya" title="Berikutnya">&#x203A;</div>
-<div class="swipe-hint" id="swipeHint">Geser ke kiri/kanan untuk pindah halaman</div>
-
-  <!-- Swipe controls for mobile / touch devices -->
+<!-- Swipe controls for mobile / touch devices -->
 <script>
 (function() {
   function hasTurn($el){ return $el && typeof $el.turn === 'function'; }
@@ -161,7 +163,12 @@
 })();
 </script>
 
-  <!-- Floating nav controls logic -->
+<!-- Floating nav controls -->
+<div class="nav-fab prev" id="navPrevFab" aria-label="Halaman sebelumnya" title="Sebelumnya">&#x2039;</div>
+<div class="nav-fab next" id="navNextFab" aria-label="Halaman berikutnya" title="Berikutnya">&#x203A;</div>
+<div class="swipe-hint" id="swipeHint">Geser ke kiri/kanan untuk pindah halaman</div>
+
+<!-- Floating nav controls logic -->
 <script>
 (function(){
   function ready(fn){ if (document.readyState!=='loading'){ fn(); } else { document.addEventListener('DOMContentLoaded', fn); } }
@@ -240,10 +247,5 @@
 })();
 </script>
 
-
 </body>
-
-
 </html>
-
-
